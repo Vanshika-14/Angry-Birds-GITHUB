@@ -9,9 +9,20 @@ var backgroundImg,platform;
 
 var GameState = "OnSling";
 
+var bg = "sprites/bg.png";
+
 function preload() {
-    backgroundImg = loadImage("sprites/bg.png");
+
+    getBackground();
+
+    PIGSNORT = loadSound("sounds/pig_snort.mp3");
+    BIRDFLYING = loadSound("sounds/bird_flying.mp3");
+    BIRDSELECT = loadSound("sounds/bird_select.mp3");
+
 }
+
+//Create Birds Array
+var birds = [];
 
 function setup(){
     var canvas = createCanvas(1200,400);
@@ -37,13 +48,25 @@ function setup(){
     log5 = new Log(870,120,150, -PI/7);
 
     bird = new Bird(200, 50);
+    bird1 = new Bird(150, 170);
+    bird2 = new Bird(100, 170);
+    bird3 = new Bird(50, 170);
+
+    birds.push(bird3);
+    birds.push(bird2);
+    birds.push(bird1);
+    birds.push(bird);
 
     slingshot = new SlingShot(bird.body, {x: 200, y: 50});
 
 }
 
 function draw(){
-    background(backgroundImg);
+
+    if(backgroundImg){
+        background(backgroundImg);
+    }
+
     Engine.update(engine);
     box1.display();
     box2.display();
@@ -61,6 +84,10 @@ function draw(){
     log5.display();
 
     bird.display();
+    bird1.display();
+    bird2.display();
+    bird3.display();
+
     platform.display();
 
     slingshot.display();
@@ -68,16 +95,43 @@ function draw(){
 
 function mouseDragged() {
     if(GameState == "OnSling"){
-    Matter.Body.setPosition (bird.body, {x: mouseX, y: mouseY});
-}}
+     Matter.Body.setPosition(birds[birds.length-1].body, {x: mouseX, y: mouseY});
+     Matter.Body.applyForce(birds[birds.length-1].body, birds[birds.length-1].body.position, {x: 10, y: -10});
+     BIRDSELECT.play();
+     return false;
+ }
+}
 
 function mouseReleased() {
     slingshot.fly();
+    birds.pop();
     GameState = "Launch"
+    BIRDFLYING.play();
+    return false;
 }
 
 function keyPressed(){
-    if(keyCode === 32){
-    //slingshot.attach(bird.body);
-    }
+   if(keyCode === 32 && GameState == "Launch"){
+    if(birds.length >= 0){
+        Matter.Body.setPosition(birds[birds.length-1].body, {x: 200, y:50});
+        slingshot.attach(birds[birds.length-1].body);
+        birds[birds.length-1].Trajectory = [];
+        GameState = "OnSling";
+      }
+   }
+}
+
+async function getBackground(){
+   var response = await fetch("http://worldclockapi.com/api/json/est/now");
+   var responseJSON = await response.json();
+   var DateTime = responseJSON.currentDateTime;
+   var hour = DateTime.slice(11, 13);
+   if(hour>=06 && hour<=19){
+       bg = "sprites/bg.png"
+   }
+   else{
+       bg = "sprites/bg2.jpg"
+   }
+   //Loading both bgS at once
+   backgroundImg = loadImage(bg);
 }

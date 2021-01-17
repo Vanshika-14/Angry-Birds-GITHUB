@@ -132,6 +132,6 @@ async function getBackground(){
    else{
        bg = "sprites/bg2.jpg"
    }
-   //Loading both bgS at once
+   //Loading both BGs at once
    backgroundImg = loadImage(bg);
 }
